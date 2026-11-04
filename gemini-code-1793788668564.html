@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>هيئة استثمار البصرة - الموارد البشرية</title>
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background: #f4f7f6; padding: 20px; }
+        .container { max-width: 500px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #2c3e50; }
+        input, textarea { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #2980b9; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #34495e; }
+        .admin-link { display: block; text-align: center; margin-top: 15px; color: #7f8c8d; text-decoration: none; }
+    </style>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>تسجيل الموارد البشرية</h2>
+        <form id="hrForm">
+            <input type="text" id="fullName" placeholder="الاسم الثلاثي" required>
+            <input type="tel" id="phone" placeholder="رقم الهاتف" required>
+            <input type="text" id="address" placeholder="السكن" required>
+            <input type="date" id="dob" required title="المواليد">
+            <input type="text" id="specialty" placeholder="الاختصاص الدقيق" required>
+            <textarea id="experience" placeholder="الخبرات السابقة" rows="3" required></textarea>
+            <textarea id="bio" placeholder="نبذة عن نفسك" rows="3" required></textarea>
+            <button type="submit">إرسال البيانات</button>
+        </form>
+        <a href="admin.html" class="admin-link">تسجيل الدخول للإدارة</a>
+    </div>
+
+    <script>
+        // ضع إعدادات Firebase الخاصة بك هنا
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        document.getElementById('hrForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const data = {
+                fullName: document.getElementById('fullName').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                dob: document.getElementById('dob').value,
+                specialty: document.getElementById('specialty').value,
+                experience: document.getElementById('experience').value,
+                bio: document.getElementById('bio').value,
+                timestamp: new Date().toLocaleString()
+            };
+
+            // حفظ في قاعدة البيانات
+            db.ref('registrations').push(data).then(() => {
+                // إرسال إشعار لكروب الواتساب عبر Webhook
+                const whatsappWebhookUrl = "ضع_رابط_الـ_WEBHOOK_هنا"; // مثل رابط Make.com أو CallMeBot
+                fetch(whatsappWebhookUrl, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ message: `تسجيل جديد: ${data.fullName} - ${data.specialty}` })
+                }).catch(err => console.log('Webhook Error:', err));
+
+                alert('تم التسجيل بنجاح!');
+                document.getElementById('hrForm').reset();
+            }).catch(error => {
+                alert('حدث خطأ أثناء التسجيل: ' + error.message);
+            });
+        });
+    </script>
+</body>
+</html>

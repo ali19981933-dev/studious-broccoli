@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الإدارة - هيئة استثمار البصرة</title>
+    <style>
+        body { font-family: 'Tajawal', sans-serif; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: right; }
+        th { background-color: #2c3e50; color: white; }
+        .header { display: flex; justify-content: space-between; align-items: center; }
+        button { padding: 10px 15px; background: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <!-- مكتبة تصدير الإكسل -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="header">
+        <h2>سجل الموارد البشرية</h2>
+        <button onclick="exportExcel()">تصدير إلى Excel</button>
+    </div>
+
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>الاسم الثلاثي</th>
+                <th>رقم الهاتف</th>
+                <th>السكن</th>
+                <th>المواليد</th>
+                <th>الاختصاص</th>
+                <th>الخبرات</th>
+                <th>النبذة</th>
+                <th>وقت التسجيل</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+    <script>
+        const firebaseConfig = {
+            // ضع إعدادات Firebase الخاصة بك هنا (نفسها في index.html)
+            databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+        };
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.database();
+
+        // جلب البيانات وعرضها
+        db.ref('registrations').on('value', snapshot => {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = ''; // تفريغ الجدول
+            snapshot.forEach(child => {
+                let d = child.val();
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${d.fullName}</td>
+                        <td>${d.phone}</td>
+                        <td>${d.address}</td>
+                        <td>${d.dob}</td>
+                        <td>${d.specialty}</td>
+                        <td>${d.experience}</td>
+                        <td>${d.bio}</td>
+                        <td>${d.timestamp}</td>
+                    </tr>
+                `;
+            });
+        });
+
+        // دالة التصدير إلى إكسل
+        function exportExcel() {
+            let table = document.getElementById("dataTable");
+            let wb = XLSX.utils.table_to_book(table, {sheet: "المسجلين"});
+            XLSX.writeFile(wb, "سجل_هيئة_استثمار_البصرة.xlsx");
+        }
+    </script>
+</body>
+</html>
